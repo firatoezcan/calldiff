@@ -19,14 +19,34 @@ Built for **agentic code review**: when an agent (or you) rewires call flow, pla
 
 Paste this when you want a walkthrough of call-flow changes:
 
-> dearest clod, walk me through the code changes you made using `pnpm dlx calldiff@latest`
+> dearest clod, walk me through the code changes you made using `pnpm dlx 'github:firatoezcan/calldiff#feat/typescript-file-callstack'`
 
-## Install
+## Install this fork branch
+
+This branch is not published to npm. It requires Node.js 22 or newer and pnpm.
+Run calldiff from inside the Git repository you want to inspect.
+
+Run it once without adding it to a project:
 
 ```bash
-pnpm dlx calldiff@latest
-# or
-pnpm add --global calldiff
+pnpm dlx 'github:firatoezcan/calldiff#feat/typescript-file-callstack' --version
+pnpm dlx 'github:firatoezcan/calldiff#feat/typescript-file-callstack' tree -e createAgentSession
+```
+
+Or install the branch globally:
+
+```bash
+pnpm add --global 'github:firatoezcan/calldiff#feat/typescript-file-callstack'
+calldiff --version
+calldiff tree -e createAgentSession
+```
+
+Or add it to one project:
+
+```bash
+pnpm add --save-dev 'github:firatoezcan/calldiff#feat/typescript-file-callstack'
+pnpm exec calldiff --version
+pnpm exec calldiff tree -e createAgentSession
 ```
 
 ## Usage
