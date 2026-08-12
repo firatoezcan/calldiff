@@ -3,7 +3,7 @@ import { allFunctions, flattenCallKeys } from "./extract.js";
 import {
   buildCallTree,
   buildCallTreeFromInfo,
-  exportsInFile,
+  entrypointsInFile,
   indexedFiles,
   resolveEntry,
   resolveEntrypointFile,
@@ -101,7 +101,10 @@ export function inferEntries(
   }
 
   const affected = [...findAffected(before, after, maxDepth)].filter(
-    (key) => !key.startsWith("new "),
+    (key) =>
+      !key.startsWith("new ") &&
+      before.get(key)?.module !== true &&
+      after.get(key)?.module !== true,
   );
   const exported = affected.filter((key) =>
     Boolean(before.get(key)?.exported || after.get(key)?.exported),
@@ -150,8 +153,8 @@ export function resolveExplicitDiffEntries(
     const keys = [
       ...new Set(
         [
-          ...exportsInFile(file, before),
-          ...exportsInFile(file, after),
+          ...entrypointsInFile(file, before),
+          ...entrypointsInFile(file, after),
         ].map((info) => info.key),
       ),
     ].sort((a, b) => a.localeCompare(b));
@@ -164,10 +167,16 @@ export function resolveExplicitDiffEntries(
       if (seen.has(id)) continue;
       seen.add(id);
       const beforeInfo = allFunctions(before).find(
-        (fn) => fn.file === file && fn.key === key && fn.exported,
+        (fn) =>
+          fn.file === file &&
+          fn.key === key &&
+          (fn.module === true || fn.exported),
       );
       const afterInfo = allFunctions(after).find(
-        (fn) => fn.file === file && fn.key === key && fn.exported,
+        (fn) =>
+          fn.file === file &&
+          fn.key === key &&
+          (fn.module === true || fn.exported),
       );
       out.push({ key, beforeInfo, afterInfo, file });
     }

@@ -104,7 +104,35 @@ describe("resolveExplicitDiffEntries with --file", () => {
 });
 
 describe("CLI --file entrypoints", () => {
-  test("tree --file expands exported symbols in that file", () => {
+  test("tree -F includes module initialization and inline callbacks", () => {
+    const host = workspace({
+      "/src/app.ts": src`
+        const app = createApp();
+        app.get("/ready", () => ready());
+        export { app };
+
+        function createApp() {}
+        function ready() {
+          ping();
+        }
+        function ping() {}
+      `,
+    });
+
+    const result = host.run("calldiff tree -F src/app.ts");
+    expect(result.code).toBe(0);
+    expect(result.stdout).toEqual(src`
+      calldiff tree working tree
+
+      src/app.ts
+      ├─ createApp()
+      └─ app.get()
+         └─ ready()
+            └─ ping()
+    `);
+  });
+
+  test("tree --file expands module execution and exported symbols", () => {
     const host = workspace({
       "/packages/api/src/boot.ts": src`
         export function boot() {
@@ -232,6 +260,34 @@ describe("CLI --file entrypoints", () => {
     expect(result.stdout).toMatch(/^\+ /m);
   }, 30_000);
 
+  test("diff -F sees module-only composition changes", () => {
+    const host = workspace();
+    const before = host.commit("before", {
+      "/src/app.ts": src`
+        const app = createApp();
+        app.get("/ready", () => ready());
+        export { app };
+        function createApp() {}
+        function ready() {}
+      `,
+    });
+    host.commit("after", {
+      "/src/app.ts": src`
+        const app = createApp();
+        app.get("/ready", () => healthy());
+        export { app };
+        function createApp() {}
+        function healthy() {}
+      `,
+    });
+
+    const result = host.run(`calldiff diff ${before} HEAD -F src/app.ts`);
+    expect(result.code).toBe(0);
+    expect(result.stdout).toContain("src/app.ts");
+    expect(result.stdout).toContain("ready()");
+    expect(result.stdout).toContain("healthy()");
+  }, 30_000);
+
   test("errors when a file entrypoint is ambiguous", () => {
     const host = workspace({
       "/packages/a/src/boot.ts": src`
@@ -249,7 +305,7 @@ describe("CLI --file entrypoints", () => {
     );
   });
 
-  test("errors when a file has no exported entrypoints", () => {
+  test("errors when a file has no entrypoints", () => {
     const host = workspace({
       "/src/internal.ts": src`
         function helper() {
@@ -261,8 +317,6 @@ describe("CLI --file entrypoints", () => {
 
     const result = host.run("calldiff tree --file src/internal.ts");
     expect(result.code).not.toBe(0);
-    expect(`${result.stdout}\n${result.stderr}`).toMatch(
-      /No exported entrypoints/,
-    );
+    expect(`${result.stdout}\n${result.stderr}`).toMatch(/No entrypoints/);
   });
 });

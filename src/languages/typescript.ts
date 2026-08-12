@@ -153,7 +153,7 @@ function collectStatements(
   const walkExpr = (node: SyntaxNode): void => {
     const type = node.type;
 
-    if (isFnLike(type) && type !== "method_definition") {
+    if (isFnLike(type)) {
       return;
     }
 
@@ -226,7 +226,30 @@ function collectStatements(
       const callee = node.namedChild(0);
       if (callee) {
         const key = calleeKey(callee, className);
-        if (key) addCall(key, node);
+        const args =
+          callee.type === "member_expression"
+            ? childByType(node, "arguments")
+            : null;
+        const children = args
+          ? namedChildren(args).flatMap((rawArgument) => {
+              const argument = stripTypeWrappers(rawArgument);
+              return isFnLike(argument.type)
+                ? collectStepsFromBody(file, functionBody(argument), className)
+                : [];
+            })
+          : [];
+        if (key) {
+          const mark = `${key}:${node.startIndex}`;
+          if (!seenCalls.has(mark)) {
+            seenCalls.add(mark);
+            steps.push({
+              type: "call",
+              key,
+              ...locFromNode(file, node),
+              ...(children.length > 0 ? { children } : {}),
+            });
+          }
+        }
       }
     } else if (type === "new_expression") {
       const callee = node.namedChild(0);
@@ -320,6 +343,23 @@ function collectStepsFromBody(
     return collectStatements(file, namedChildren(body), className);
   }
   return collectStatements(file, [body], className);
+}
+
+function functionBody(node: SyntaxNode): SyntaxNode | null {
+  return (
+    childByType(node, "statement_block") ??
+    namedChildren(node).find(
+      (child) =>
+        child.type !== "formal_parameters" &&
+        child.type !== "type_parameters" &&
+        child.type !== "type_annotation" &&
+        child.type !== "identifier" &&
+        child.type !== "accessibility_modifier" &&
+        child.type !== "async" &&
+        child.type !== "readonly",
+    ) ??
+    null
+  );
 }
 
 function functionFromParts(
@@ -562,19 +602,7 @@ function handleFunctionNode(
   if (!name) return;
   const key = className && !local ? `${className}.${name}` : name;
   const params = childByType(node, "formal_parameters");
-  const body =
-    childByType(node, "statement_block") ??
-    namedChildren(node).find(
-      (c) =>
-        c.type !== "formal_parameters" &&
-        c.type !== "type_parameters" &&
-        c.type !== "type_annotation" &&
-        c.type !== "identifier" &&
-        c.type !== "accessibility_modifier" &&
-        c.type !== "async" &&
-        c.type !== "readonly",
-    ) ??
-    null;
+  const body = functionBody(node);
 
   const info = functionFromParts(
     file,
@@ -757,7 +785,21 @@ function extractFromTree(
   tree: Tree,
 ): FunctionInfo[] {
   const functions: FunctionInfo[] = [];
-  for (const stmt of namedChildren(tree.rootNode)) {
+  const statements = namedChildren(tree.rootNode);
+  const moduleSteps = collectStatements(file, statements, null);
+  if (moduleSteps.length > 0) {
+    functions.push({
+      key: `module:${file}`,
+      label: file,
+      file,
+      steps: moduleSteps,
+      exported: false,
+      module: true,
+      start: tree.rootNode.startIndex,
+      end: tree.rootNode.endIndex,
+    });
+  }
+  for (const stmt of statements) {
     visitStatement(file, stmt, false, functions);
   }
   return functions;

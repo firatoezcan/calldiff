@@ -104,7 +104,7 @@ const entryOption = z
 const fileOption = z
   .union([z.string(), z.array(z.string())])
   .describe(
-    "Entrypoint file(s): indexed source path; expands to that file's exports",
+    "Entrypoint file(s): indexed source path; expands module execution and exports",
   );
 
 const maxDepthOption = z.coerce
@@ -169,7 +169,7 @@ export const cli = Cli.create("calldiff", {
         options: { entry: "createAgentSession" },
       },
       {
-        description: "File as entrypoint (all exports in that file)",
+        description: "File as entrypoint (module execution and exports)",
         args: { from: "main", to: "feature" },
         options: { file: "src/routes.ts" },
       },
@@ -250,7 +250,7 @@ export const cli = Cli.create("calldiff", {
         options: { entry: "PiService.createAgentSession" },
       },
       {
-        description: "Tree for every export in a file",
+        description: "Tree for module execution and every export in a file",
         options: { file: "packages/api/src/routes.ts" },
       },
     ],
@@ -315,7 +315,7 @@ export const cli = Cli.create("calldiff", {
         options: { entry: "runCheckout", to: "sendEmail" },
       },
       {
-        description: "Paths from every export in a file",
+        description: "Paths from module execution and every export in a file",
         options: { file: "packages/api/src/flow.ts", to: "notify" },
       },
     ],

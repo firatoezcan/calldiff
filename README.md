@@ -46,7 +46,7 @@ calldiff diff --from main --to feature
 calldiff diff main feature --entry createAgentSession
 calldiff diff main feature -e PiService.createAgentSession -e boot
 
-# file as entrypoint (every export in that indexed source file)
+# file as entrypoint (module execution and every export)
 calldiff tree --file src/routes.ts
 calldiff tree -F packages/api/src/boot.ts
 calldiff diff main HEAD --file src/routes.ts
@@ -84,7 +84,7 @@ calldiff mcp add      # register as MCP server
 
 If you omit `--entry` / `--file`, calldiff infers exported functions whose expanded call trees changed (and may show several).
 
-`--file` / `-F` takes an indexed source path and expands to every **exported** symbol defined in that file (useful in monorepos). Matching is exact path, or a unique suffix (`boot.ts` → `packages/api/src/boot.ts`). Ambiguous matches error so you can pass a more specific path. `--entry` / `-e` is symbols only.
+`--file` / `-F` takes an indexed source path and expands its module execution plus every exported symbol defined in that file (useful in monorepos). Matching is exact path, or a unique suffix (`boot.ts` → `packages/api/src/boot.ts`). Ambiguous matches error so you can pass a more specific path. `--entry` / `-e` is symbols only.
 
 ### `tree`
 

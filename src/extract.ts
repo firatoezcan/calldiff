@@ -27,7 +27,7 @@ function loadLanguage(npmPackage: string, grammarExport?: string): unknown {
   return language;
 }
 
-export function extractFunctions(
+function extractFile(
   file: string,
   source: string,
 ): FunctionInfo[] {
@@ -47,10 +47,17 @@ export function extractFunctions(
   });
 }
 
+export function extractFunctions(
+  file: string,
+  source: string,
+): FunctionInfo[] {
+  return extractFile(file, source).filter((fn) => fn.module !== true);
+}
+
 type CachedFunction = Omit<FunctionInfo, "file">;
 export type ExtractionCache = Map<string, CachedFunction[]>;
 
-export function extractCached(
+function extractAllCached(
   file: string,
   source: string,
   cache: ExtractionCache,
@@ -63,12 +70,30 @@ export function extractCached(
   let functions = cache.get(key);
 
   if (!functions) {
-    functions = extractFunctions(file, source).map(
+    functions = extractFile(file, source).map(
       ({ file: ignored, ...fn }) => fn,
     );
     cache.set(key, functions);
   }
   return functions.map((fn) => ({ ...fn, file }));
+}
+
+export function extractCached(
+  file: string,
+  source: string,
+  cache: ExtractionCache,
+): FunctionInfo[] {
+  return extractAllCached(file, source, cache).filter(
+    (fn) => fn.module !== true,
+  );
+}
+
+export function extractFileCached(
+  file: string,
+  source: string,
+  cache: ExtractionCache,
+): FunctionInfo[] {
+  return extractAllCached(file, source, cache);
 }
 
 export type FunctionIndex = Map<string, FunctionInfo>;

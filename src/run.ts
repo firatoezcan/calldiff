@@ -1,11 +1,11 @@
 import {
   buildCallTreeFromInfo,
-  exportsInFile,
+  entrypointsInFile,
   resolveEntry,
   resolveEntrypointFile,
   indexedFiles,
 } from "./calltree.js";
-import { buildIndex, extractCached } from "./extract.js";
+import { buildIndex, extractFileCached } from "./extract.js";
 import {
   assertGitRepo,
   describeSnapshot,
@@ -88,7 +88,7 @@ function loadIndex(
   const extracted = new Map<string, FunctionInfo[]>();
   const extract = (file: SnapshotFile, source: string): void => {
     try {
-      extracted.set(file.path, extractCached(file.path, source, cache));
+      extracted.set(file.path, extractFileCached(file.path, source, cache));
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       console.error(
@@ -155,9 +155,9 @@ function resolveFileInfos(
 
   for (const entry of files) {
     const file = resolveEntrypointFile(entry, indexedFiles(index));
-    const infos = exportsInFile(file, index);
+    const infos = entrypointsInFile(file, index);
     if (infos.length === 0) {
-      throw new Error(`No exported entrypoints in ${file}`);
+      throw new Error(`No entrypoints in ${file}`);
     }
     for (const info of infos) {
       const id = `${info.file}\0${info.key}\0${info.line ?? ""}`;

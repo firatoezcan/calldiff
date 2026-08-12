@@ -67,16 +67,28 @@ export function exportsInFile(
   );
 }
 
+/** Module execution followed by exported definitions in a concrete source path. */
+export function entrypointsInFile(
+  file: string,
+  index: FunctionIndex,
+): FunctionInfo[] {
+  return sortDefinitions(
+    allFunctions(index).filter(
+      (fn) => fn.file === file && (fn.module === true || fn.exported),
+    ),
+  );
+}
+
 /**
- * Exported definitions for a `--file` argument against one index.
- * Throws when the path is missing/ambiguous; returns [] when the file has no exports.
+ * Module execution and exported definitions for a `--file` argument.
+ * Throws when the path is missing or ambiguous.
  */
 export function resolveFileEntrypoints(
   entry: string,
   index: FunctionIndex,
 ): FunctionInfo[] {
   const file = resolveEntrypointFile(entry, indexedFiles(index));
-  return exportsInFile(file, index);
+  return entrypointsInFile(file, index);
 }
 
 /** Is `fn` declared inside `owner`'s source span? */

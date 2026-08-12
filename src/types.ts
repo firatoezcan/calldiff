@@ -70,6 +70,8 @@ export interface FunctionInfo {
   /** Ordered body steps (calls + if/else branches) */
   steps: CallStep[];
   exported: boolean;
+  /** Synthetic top-level execution root used by file entrypoints. */
+  module?: true;
   /**
    * Declared inside another function body (a helper or closure) rather than at
    * file top level. Locals only answer calls made from their own file, so a
