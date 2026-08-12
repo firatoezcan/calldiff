@@ -159,4 +159,27 @@ describe("locally declared helpers", () => {
     `);
     expect(result.stdout).not.toContain("readdirSync");
   });
+
+  test("does not graft a private definition from another file", () => {
+    const host = workspace({
+      "/src/app.ts": src`
+        export function start() {
+          status("ready");
+        }
+      `,
+      "/src/unrelated.ts": src`
+        function status(value: string) {
+          leak(value);
+        }
+
+        function leak(value: string) {}
+      `,
+    });
+
+    const result = host.run("calldiff tree --entry start");
+
+    expect(result.code).toBe(0);
+    expect(result.stdout).toContain("status()");
+    expect(result.stdout).not.toContain("leak");
+  });
 });

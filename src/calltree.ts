@@ -130,17 +130,18 @@ function resolveCall(
       return shadowing ?? candidates[0];
     }
   }
-  return index.get(key);
+  const global = index.get(key);
+  if (global && file && global.file !== file && !global.exported) {
+    return undefined;
+  }
+  return global;
 }
 
 function displayCallLabel(
   key: string,
-  index: FunctionIndex,
   info?: FunctionInfo,
 ): string {
   if (info) return info.label;
-  const fromIndex = index.get(key);
-  if (fromIndex) return fromIndex.label;
   return key.includes("(") ? key : `${key}()`;
 }
 
@@ -198,7 +199,7 @@ function expandCall(
   owner?: FunctionInfo,
 ): CallNode {
   const info = infoOverride ?? resolveCall(key, index, callSite, owner);
-  const label = displayCallLabel(key, index, info);
+  const label = displayCallLabel(key, info);
 
   // Recursion is per definition, not per name: two same-named functions in
   // different files calling each other is not a cycle.
