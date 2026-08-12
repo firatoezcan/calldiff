@@ -16,7 +16,7 @@ export type GrammarModule = {
   [key: string]: unknown;
 };
 
-/** On-disk cache of npm-installed tree-sitter grammar packages. */
+/** On-disk cache of tree-sitter grammar packages. */
 export function grammarCacheDir(): string {
   const override = process.env.CALLDIFF_GRAMMAR_CACHE;
   if (override) return override;
@@ -98,7 +98,7 @@ const INSTALL_SPEC: Record<string, string> = {
 };
 
 /**
- * Install an npm grammar package into the shared cache if missing, then require it.
+ * Install a grammar package into the shared cache if missing, then require it.
  * Reuses the cache across CLI invocations.
  */
 export function loadGrammarPackage(npmPackage: string): GrammarModule {
@@ -130,15 +130,14 @@ export function loadGrammarPackage(npmPackage: string): GrammarModule {
     ensureCachePackageJson(cacheDir);
     const installSpec = INSTALL_SPEC[npmPackage] ?? npmPackage;
     execFileSync(
-      "npm",
+      "pnpm",
       [
-        "install",
-        "--prefix",
+        "--dir",
         cacheDir,
-        "--no-save",
-        "--no-fund",
-        "--no-audit",
-        "--legacy-peer-deps",
+        "add",
+        "--save-exact",
+        "--config.dangerously-allow-all-builds=true",
+        "--config.strict-peer-dependencies=false",
         installSpec,
       ],
       {

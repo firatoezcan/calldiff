@@ -3,6 +3,7 @@
   "version": "0.5.0",
   "description": "Diff call stacks across git commits for agentic code review (22 languages)",
   "type": "module",
+  "packageManager": "pnpm@10.25.0",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -17,10 +18,10 @@
   ],
   "scripts": {
     "build": "tsc",
-    "prepublishOnly": "npm run build",
+    "prepublishOnly": "pnpm build",
     "dev": "tsx src/cli.ts",
     "start": "node dist/cli.js",
-    "test": "vitest run"
+    "test": "vitest run --no-file-parallelism"
   },
   "engines": {
     "node": ">=22"
@@ -57,6 +58,14 @@
     "tree-sitter-typescript": {
       "tree-sitter": "$tree-sitter"
     }
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "tree-sitter",
+      "tree-sitter-javascript",
+      "tree-sitter-typescript"
+    ]
   },
   "devDependencies": {
     "@types/node": "^24.2.0",

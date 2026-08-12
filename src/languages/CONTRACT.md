@@ -41,7 +41,7 @@ At least 2 tests: (1) helper refactor + if/else (2) method/receiver resolution.
 
 ## Verify
 ```bash
-CALLDIFF_GRAMMAR_CACHE=/tmp/calldiff-grammar-cache npx tsx -e "
+CALLDIFF_GRAMMAR_CACHE=/tmp/calldiff-grammar-cache pnpm exec tsx -e "
 import { extractFunctions } from './src/extract.ts';
 // temporarily won't be registered — test extract() directly from your module
 "

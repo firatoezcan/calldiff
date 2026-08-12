@@ -19,14 +19,14 @@ Built for **agentic code review**: when an agent (or you) rewires call flow, pla
 
 Paste this when you want a walkthrough of call-flow changes:
 
-> dearest clod, walk me through the code changes you made using `npx calldiff@latest`
+> dearest clod, walk me through the code changes you made using `pnpm dlx calldiff@latest`
 
 ## Install
 
 ```bash
-npx calldiff@latest
+pnpm dlx calldiff@latest
 # or
-npm install -g calldiff
+pnpm add --global calldiff
 ```
 
 ## Usage
@@ -139,7 +139,7 @@ Grammars install on first use (override cache with `CALLDIFF_GRAMMAR_CACHE`). Th
 ## Dev
 
 ```bash
-npm run dev -- diff main HEAD --entry PiService.createAgentSession
-npm run dev -- tree -e runCheckout -- examples/checkout
-npm run dev -- reach -e runCheckout --to sendEmail -- examples/checkout
+pnpm dev -- diff main HEAD --entry PiService.createAgentSession
+pnpm dev -- tree -e runCheckout -- examples/checkout
+pnpm dev -- reach -e runCheckout --to sendEmail -- examples/checkout
 ```

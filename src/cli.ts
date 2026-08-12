@@ -361,7 +361,7 @@ export const cli = Cli.create("calldiff", {
 
 export default cli;
 
-/** True when this file is the process entry (including npm `.bin` symlinks). */
+/** True when this file is the process entry, including package-manager symlinks. */
 function executedAsCli(): boolean {
   const entry = process.argv[1];
   if (!entry) return false;
